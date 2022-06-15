@@ -305,20 +305,34 @@ Using Keyring on headless Linux systems
 It is possible to use the SecretService backend on Linux systems without
 X11 server available (only D-Bus is required). In this case:
 
-* Install the `GNOME Keyring`_ daemon.
-* Start a D-Bus session, e.g. run ``dbus-run-session -- sh`` and run
-  the following commands inside that shell.
-* Run ``gnome-keyring-daemon`` with ``--unlock`` option. The description of
-  that option says:
+Install the `GNOME Keyring`_ daemon::
 
-      Read a password from stdin, and use it to unlock the login keyring
-      or create it if the login keyring does not exist.
+  sudo apt install gnome-keyring
 
-  When that command is started, enter a password into stdin and
-  press Ctrl+D (end of data). After that, the daemon will fork into
-  background (use ``--foreground`` option to block).
-* Now you can use the SecretService backend of Keyring. Remember to
-  run your application in the same D-Bus session as the daemon.
+Start a D-Bus session, and run the following commands inside that shell::
+  
+  dbus-run-session -- bash --noprofile --norc
+ 
+Run ``gnome-keyring-daemon`` with ``--unlock`` option. The description of
+that option says: "Read a password from stdin, and use it to unlock the login keyring
+or create it if the login keyring does not exist." When that command is started,
+enter a password into stdin and press Ctrl+D (end of data). After that, the daemon will fork into
+background (use ``--foreground`` option to block).
+  
+But you can also send the password with ``echo`` making sure that you are using the parameter ``-n`` to prevent from sending 
+the endline character::
+    
+  rm -rf ~/.local/share/keyrings              # remove previous keyrings
+  echo -n 'password' | gnome-keyring-daemon --unlock
+  
+Now you can use the SecretService backend of Keyring. Remember to
+run your application in the same D-Bus session as the daemon ::
+
+  python3 -m venv env
+  . env/bin/activate
+  pip install keyring
+  python3 -m keyring set system username     # will prompt for the secret
+  python3 -m keyring get system username     # should return the secret
 
 .. _GNOME Keyring: https://wiki.gnome.org/Projects/GnomeKeyring
 
